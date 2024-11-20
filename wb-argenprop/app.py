@@ -28,9 +28,10 @@ def argenprop_web_scraper():
 
         # Construcción de la URL para scraping
         url = f'https://www.argenprop.com/casas/alquiler/{pais}'
-        response = requests.get(url)
+        session = requests.Session()
+        response = session.get(url)
         soup = BeautifulSoup(response.text, 'html.parser')
-
+        
         next_page = True
         casas = []
         page_count = 1
