@@ -6,20 +6,27 @@ import json
 
 app = Flask(__name__)
 
-@app.route('/argenprop', methods=['GET'])
+@app.route('/argenprop', methods=['GET', 'POST'])
 def argenprop_web_scraper():
     try:
-        # Validar que el cuerpo de la solicitud sea JSON válido
-        data = json.loads(request.data)
-        if "pais" not in data:
+        if request.method == 'POST':
+            # Leer datos del cuerpo de la solicitud
+            data = json.loads(request.data)
+            pais = data.get("pais")
+            limite = data.get("limite", None)
+        else:  # GET
+            # Leer datos desde los parámetros de la URL
+            pais = request.args.get("pais")
+            limite = request.args.get("limite", type=int)
+
+        # Validaciones
+        if not pais:
             return jsonify({"error": "El campo 'pais' es obligatorio"}), 400
 
-        pais = data["pais"]
-        limite = data.get("limite")  # Obtén el límite, si no está, será None
-
-        if limite is not None and (not isinstance(limite, int) or limite <= 0):
+        if limite is not None and limite <= 0:
             return jsonify({"error": "El campo 'limite' debe ser un número entero positivo."}), 400
 
+        # Construcción de la URL para scraping
         url = f'https://www.argenprop.com/casas/alquiler/{pais}'
         response = requests.get(url)
         soup = BeautifulSoup(response.text, 'html.parser')
